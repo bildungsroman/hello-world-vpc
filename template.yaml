@@ -37,6 +37,8 @@ Resources:
       Policies:
         - AWSXrayWriteOnlyAccess
         - AWSLambdaENIManagementAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Table
       Events:
         apiGET:
           Type: Api
@@ -50,6 +52,10 @@ Resources:
         SubnetIds:
           - !Ref VirtualNetworkPrivateSubnet1
           - !Ref VirtualNetworkPrivateSubnet2
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref Table
+          TABLE_ARN: !GetAtt Table.Arn
     Metadata:
       StackeryName: getWelcomePage
   VirtualNetwork:
@@ -271,6 +277,19 @@ Resources:
     Properties:
       RouteTableId: !Ref VirtualNetworkPublicSubnetsRouteTable
       SubnetId: !Ref VirtualNetworkPublicSubnet2
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      TableName: !Sub ${AWS::StackName}-Table
 Parameters:
   StackeryStackTagName:
     Type: String
